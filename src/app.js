@@ -1,17 +1,9 @@
 import express from 'express';
+import morgan from 'morgan';
 
-const ejemplo = 'soy james';
-const ejemplo1 = 'soy james';
-const ejemplo2 = 'soy james';
-const ejemplo3 = 'soy james';
-const ejemplo4 = 'soy james';
-const ejemplo5 = 'soy james';
-const ejemplo6 = 'soy james';
-const ejemplo7 = 'soy james';
-const ejemplo8 = 'soy james';
-const ejemplo9 = 'soy james';
-const ejemplo10 = 'soy james';
+const app = express();
 
-const test = () => {
-  console.error('test');
-};
+app.use(express.json());
+app.use(morgan('dev'));
+
+export default app;
