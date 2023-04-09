@@ -7,7 +7,8 @@
   "scripts": {
     "prepare": "husky install",
     "lint": "prettier --write . && git add -A .",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "author": "James Noria, Cristian Meza",
   "license": "MIT",
