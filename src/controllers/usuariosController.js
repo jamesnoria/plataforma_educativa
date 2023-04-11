@@ -1,4 +1,5 @@
 import Usarios from '../models/usuariosModel.js';
+import { toUpper } from '../utils/toUpper.js';
 
 export const registrarUsuario = async (req, res) => {
   try {
@@ -12,18 +13,29 @@ export const registrarUsuario = async (req, res) => {
       password,
       passwordConfirm,
     } = req.body;
-    const usuario = new Usarios({
-      nombre,
-      apellido,
-      dni,
-      email,
-      telefono,
-      carrera,
-      password,
-      passwordConfirm,
-    });
-    const usuarioGuardado = await usuario.save();
-    res.status(201).json(usuarioGuardado);
+
+    if (password == passwordConfirm) {
+      const usuario = new Usarios({
+        nombre: toUpper(nombre),
+        apellido: toUpper(apellido),
+        dni,
+        email,
+        telefono,
+        carrera: toUpper(carrera),
+        password,
+        passwordConfirm,
+      });
+      const usuarioGuardado = await usuario.save();
+      res.status(201);
+      res.json({
+        message: 'Usuario creado correctamente',
+        data: usuarioGuardado.nombre,
+      });
+    } else {
+      res.json({
+        message: 'no coinciden los password',
+      });
+    }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
