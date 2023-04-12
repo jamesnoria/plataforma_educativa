@@ -2,9 +2,16 @@ import Usuarios from '../models/usuariosModel.js';
 import { toUpper } from '../utils/toUpper.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { usuariosSchema } from '../models/usuariosValidation.js';
+
 dotenv.config({
   path: './.env',
 });
+
+const generateAccessToken = (user) => {
+  return jwt.sign(user, process.env.SECRET);
+};
+
 export const registrarUsuario = async (req, res) => {
   try {
     const {
@@ -17,6 +24,14 @@ export const registrarUsuario = async (req, res) => {
       password,
       passwordConfirm,
     } = req.body;
+
+    const { error } = usuariosSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    // console.log(req.body);
+
     const user = { email };
     const accesstoken = generateAccessToken(user);
     if (password == passwordConfirm) {
@@ -31,7 +46,7 @@ export const registrarUsuario = async (req, res) => {
         passwordConfirm,
       });
 
-      const usuarioGuardado = await usuario.save();
+      await usuario.save();
 
       res.header('authorization', accesstoken);
       res.status(201);
@@ -55,9 +70,6 @@ export const registrarUsuario = async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
-};
-const generateAccessToken = (user) => {
-  return jwt.sign(user, process.env.SECRET);
 };
 
 export const obtenerUsuarios = async (req, res) => {

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const Schema = mongoose.Schema;
 
@@ -47,12 +48,21 @@ const usuariosSchema = new Schema({
     type: String,
     minLength: [4, 'debe tener como minimo 4 caracteres'],
     required: true,
+    // select: false
   },
   passwordConfirm: {
     type: String,
     minLength: [4, 'debe tener como minimo 4 caracteres'],
     required: true,
+    // select: false
   },
+});
+
+usuariosSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
 });
 
 const Usuarios = mongoose.model('Usuarios', usuariosSchema);
