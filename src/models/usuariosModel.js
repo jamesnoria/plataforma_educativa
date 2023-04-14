@@ -20,8 +20,6 @@ const usuariosSchema = new Schema({
   },
   dni: {
     type: Number,
-    min: [8, 'el dni debe tener 8 digitos'],
-    // max: [8,'el dni debe tener 8 digitos'],
     unique: true,
     required: true,
   },
@@ -33,8 +31,6 @@ const usuariosSchema = new Schema({
   },
   telefono: {
     type: Number,
-    min: [9, 'el telefono debe tener 9 digitos'],
-    // max: [9,'el telefono debe tener 9 digitos'],
     required: true,
   },
   carrera: {
@@ -48,13 +44,11 @@ const usuariosSchema = new Schema({
     type: String,
     minLength: [4, 'debe tener como minimo 4 caracteres'],
     required: true,
-    // select: false
   },
   passwordConfirm: {
     type: String,
     minLength: [4, 'debe tener como minimo 4 caracteres'],
     required: true,
-    // select: false
   },
 });
 

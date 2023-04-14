@@ -3,6 +3,7 @@ import { toUpper } from '../utils/toUpper.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { usuariosSchema } from '../models/usuariosValidation.js';
+import bcrypt from 'bcryptjs';
 
 dotenv.config({
   path: './.env',
@@ -25,46 +26,62 @@ export const registrarUsuario = async (req, res) => {
       passwordConfirm,
     } = req.body;
 
-    const { error } = usuariosSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+    const todni = dni.toString();
+    const totelefono = telefono.toString();
 
-    // console.log(req.body);
+    // const { error } = usuariosSchema.validate(req.body);
+    // if (error) {
+    //   return res.status(400).json({ error: error.message });
+    // }
 
     const user = { email };
     const accesstoken = generateAccessToken(user);
-    if (password == passwordConfirm) {
-      const usuario = new Usuarios({
-        nombre: toUpper(nombre),
-        apellido: toUpper(apellido),
-        dni,
-        email,
-        telefono,
-        carrera: toUpper(carrera),
-        password,
-        passwordConfirm,
-      });
+    if (totelefono.length == 9) {
+      if (todni.length == 8) {
+        if (password == passwordConfirm) {
+          const usuario = new Usuarios({
+            nombre: toUpper(nombre),
+            apellido: toUpper(apellido),
+            dni,
+            email,
+            telefono,
+            carrera: toUpper(carrera),
+            password,
+            passwordConfirm,
+          });
 
-      await usuario.save();
+          await usuario.save();
 
-      res.header('authorization', accesstoken);
-      res.status(201);
-      res.json({
-        status: 'success',
-        message: 'Usuario creado correctamente',
-        token: accesstoken,
-        data: [
-          {
-            nombre,
-            apellido,
-            carrera,
-          },
-        ],
-      });
+          res.header('authorization', accesstoken);
+          res.status(201);
+          res.json({
+            status: 'success',
+            message: 'Usuario creado correctamente',
+            token: accesstoken,
+            data: [
+              {
+                nombre,
+                apellido,
+                carrera,
+              },
+            ],
+          });
+        } else {
+          res.status(404);
+          res.json({
+            message: 'No coinciden los password',
+          });
+        }
+      } else {
+        res.status(404);
+        res.json({
+          message: 'El dni debe tener 8 digitos',
+        });
+      }
     } else {
+      res.status(404);
       res.json({
-        message: 'no coinciden los password',
+        message: 'El telefono debe tener 9 digitos',
       });
     }
   } catch (error) {
@@ -95,5 +112,32 @@ export const eliminarUsuarios = async (req, res) => {
     });
   } catch (error) {
     console.error('Error en la funcion eliminarUsuarios', error);
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const useremail = await Usuarios.findOne({ email });
+    if (!useremail) {
+      res.status(404).json({
+        message: 'incorrect email or does not exist',
+      });
+    }
+
+    const userpasswordbcry = bcrypt.compareSync(password, useremail.password);
+    if (!userpasswordbcry) {
+      return res.status(404).json({
+        message: 'incorrect password',
+      });
+    }
+    res.status(201);
+    res.json({
+      status: 'success',
+      message: `Welcome ${email}`,
+    });
+  } catch (error) {
+    console.error('Login failed', error);
   }
 };
