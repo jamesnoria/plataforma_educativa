@@ -2,7 +2,6 @@ import Usuarios from '../models/usuariosModel.js';
 import { toUpper } from '../utils/toUpper.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { usuariosSchema } from '../models/usuariosValidation.js';
 import bcrypt from 'bcryptjs';
 
 dotenv.config({
@@ -126,6 +125,12 @@ export const login = async (req, res) => {
       });
     }
 
+    // match token
+    const user = { email };
+
+    const accesstoken = generateAccessToken(user);
+    res.header('authorization', accesstoken);
+
     const userpasswordbcry = bcrypt.compareSync(password, useremail.password);
     if (!userpasswordbcry) {
       return res.status(404).json({
@@ -136,8 +141,91 @@ export const login = async (req, res) => {
     res.json({
       status: 'success',
       message: `Welcome ${email}`,
+      token: accesstoken,
     });
   } catch (error) {
     console.error('Login failed', error);
+  }
+};
+
+export const protect = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({
+      message: 'No tienes autorizacion para acceder a este recurso',
+    });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const user = await Usuarios.findOne({ email: req.user.email });
+    res.status(200).json({
+      status: 'success',
+      data: user,
+    });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { nombre, apellido, dni, email, telefono, carrera } = req.body;
+    const todni = dni.toString();
+    const totelefono = telefono.toString();
+
+    if (totelefono.length == 9) {
+      if (todni.length == 8) {
+        const user = await Usuarios.findOneAndUpdate(
+          { email: req.user.email },
+          {
+            nombre: toUpper(nombre),
+            apellido: toUpper(apellido),
+            dni,
+            email,
+            telefono,
+            carrera: toUpper(carrera),
+          },
+          { new: true }
+        );
+        res.status(200).json({
+          status: 'success',
+          data: user,
+        });
+      } else {
+        res.status(404);
+        res.json({
+          message: 'El dni debe tener 8 digitos',
+        });
+      }
+    } else {
+      res.status(404);
+      res.json({
+        message: 'El telefono debe tener 9 digitos',
+      });
+    }
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+export const verifyRole = async (req, res, next) => {
+  const user = await Usuarios.findOne({ email: req.user.email });
+
+  const role = user.role;
+
+  console.log(role);
+
+  if (role === 'admin') {
+    next();
+  } else {
+    res.status(401).json({
+      message: 'No tienes autorizacion para acceder a este recurso',
+    });
   }
 };

@@ -1,16 +1,17 @@
 import express from 'express';
-import {
-  registrarUsuario,
-  obtenerUsuarios,
-  eliminarUsuarios,
-  login,
-} from '../controllers/usuariosController.js';
+import * as usuariosController from '../controllers/usuariosController.js';
 
 const router = express.Router();
 
-router.post('/', registrarUsuario);
+router.post('/', usuariosController.registrarUsuario());
+router.delete('/', usuariosController.eliminarUsuarios());
+router.post('/login', usuariosController.login());
+
+router.use(protect); // variable global de usuario
+router.get('/me', getMe); // obtener usuario logueado
+router.put('/', updateUser); // actualizar usuario logueado
+
+router.use(verifyRole); // usar para sacar el rol
 router.get('/', obtenerUsuarios);
-router.delete('/', eliminarUsuarios);
-router.post('/login', login);
 
 export default router;

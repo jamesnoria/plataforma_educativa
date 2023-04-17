@@ -50,6 +50,11 @@ const usuariosSchema = new Schema({
     minLength: [4, 'debe tener como minimo 4 caracteres'],
     required: true,
   },
+  role: {
+    type: String,
+    enum: ['admin', 'user'],
+    default: 'user',
+  },
 });
 
 usuariosSchema.pre('save', async function (next) {
